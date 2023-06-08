@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>유지보수 요청 현황</title>
+    <style>
+        body {
+            margin: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        .completed {
+            color: green;
+            font-weight: bold;
+        }
+        .table-container {
+            margin-bottom: 20px;
+        }
+        .requester-cell {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .request-content-cell {
+            min-width: 400px;
+            max-width: 400px;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+        .export-btn {
+            margin-left: 10px;
+        }
+    </style>
+    <script>
+        function showConfirmation() {
+            return confirm("변경한 내용을 저장 하시겠습니까?");
+        }
+    </script>
+</head>
+<body>
+    <h1>유지보수 요청 현황</h1>
+    <form method="post" action="/complete" onsubmit="return showConfirmation()">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" onclick="toggleAllCheckboxes('complete')">&nbsp;완료</th>
+                        <th>요청일자</th>
+                        <th>요청부서</th>
+                        <th>요청자</th>
+                        <th>요청내용</th>
+                        <th><input type="checkbox" onclick="toggleAllCheckboxes('delete')">&nbsp;삭제</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" class="complete-checkbox" name="completed[]" value="{{ entry.id }}" {% if entry.completed %}checked{% endif %}>
+                        </td>
+
+                        <td>{{ entry.request_date }}</td>
+                        <td>{{ entry.department }}</td>
+                        <td class="requester-cell">{{ entry.requester }}</td>
+                        <td class="request-content-cell">{{ entry.task }}</td>
+
+                        <td>
+                            <input type="checkbox" class="delete-checkbox" name="delete[]" value="{{ entry.id }}">
+                        </td>
+                        
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!--페이지 번호를 통한 리스트 페이지 이동-->
+        <style>
+            .pagination {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        
+            .pagination a {
+                margin: 0 5px;
+                font-size: 25px;
+                animation: snowflake 10s linear infinite;
+            }
+        
+            .pagination span {
+                font-size: 25px;
+            }
+        </style>
+        <!-- Add pagination links at the bottom of the table -->
+        <div class="pagination">
+            <!-- Display pagination links -->
+            {% for page_num in range(1, total_pages+1) %}
+                {% if current_page == page_num %}
+                    <span style="font-size: 25px;">{{page_num}}</span>
+                {% else %}
+                    <a href="{{ url_for('entries', page=page_num) }}" style="font-size: 25px;">{{ page_num }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        <br>
+        
+        <div>
+            <button type="submit" name="complete_btn" value="완료">완료</button>
+            &nbsp;&nbsp;
+            <button type="submit" name="delete_btn" value="삭제">삭제</button>
+            &nbsp;&nbsp;
+            <button type="button" class="export-btn" onclick="location.href='/export'">XLSX 다운로드</button>
+        </div>
+    </form>
+    <br>
+    <div>
+        <button onclick="goHome()">신청 페이지로 이동</button>
+    </div>
+    <br>
+    <script>
+        function goHome() {
+            window.location.href = "/";
+        }
+
+        function toggleAllCheckboxes(column) {
+            var checkboxes = document.getElementsByClassName(column + '-checkbox');
+            var checked = false;
+
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (!checkboxes[i].checked) {
+                    checked = true;
+                    break;
+                }
+            }
+
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = checked;
+            }
+        }
+
+    </script>
+</body>
+</html>
